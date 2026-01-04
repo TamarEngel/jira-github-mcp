@@ -67,7 +67,8 @@ def register(mcp: FastMCP) -> None:
             )
             
             return {
-                "success": True,"pr_number": pr_number,"title": pr_data.get("title"),"commit_sha": result.get("sha"),"message": f"PR #{pr_number} merged successfully",
+                "success": True,"pr_number": pr_number,"title": pr_data.get("title"),
+                "commit_sha": result.get("sha"),"message": f"PR #{pr_number} merged successfully",
             }
         
         except RuntimeError as e:

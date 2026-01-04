@@ -54,7 +54,9 @@ def register(mcp: FastMCP) -> None:
             )
             
             return {
-                "success": True,"issue_key": issue_key,"branch_name": branch_name,"ref": result.get("ref"),"message": f"Branch feature/{issue_key} created!\nSWITCH TO IT: git checkout feature/{issue_key}","next_step": f"git checkout feature/{issue_key}"
+                "success": True,"issue_key": issue_key,"branch_name": branch_name,"ref": result.get("ref"),
+                "message": f"Branch feature/{issue_key} created!\nSWITCH TO IT: git checkout feature/{issue_key}",
+                "next_step": f"git checkout feature/{issue_key}"
             }
         except Exception as e:
             return {

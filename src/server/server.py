@@ -23,17 +23,19 @@ def register_tools(mcp: FastMCP) -> None:
     reg_github_commit_push(mcp)
     reg_github_merge_pr(mcp)
     
-    # Workflow prompts
-    reg_workflow_prompts(mcp)
-
 def register_resources(mcp: FastMCP) -> None:
     """Register resources"""
     reg_resources(mcp)
 
+def register_prompts(mcp: FastMCP) -> None:
+    """Register prompts"""
+    reg_workflow_prompts(mcp)
+
 def main() -> None:
-    mcp = FastMCP("jira-mcp")   
+    mcp = FastMCP("jira-github-mcp")   
     register_tools(mcp)    
     register_resources(mcp)
+    register_prompts(mcp)
     mcp.run()
 
 if __name__ == "__main__":

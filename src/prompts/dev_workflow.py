@@ -6,39 +6,6 @@ from typing import Optional
 from mcp.types import TextContent
 
 
-# def get_workflow_guidance(step: str = "start", issue_key: Optional[str] = None) -> str:
-#     """Get workflow guidance for current step."""
-    
-#     workflows = {
-#         "start": "Start workflow: Select Jira issue → Transition to IN PROGRESS → Create branch → Write code → Commit → PR → Review → Merge → Done",
-        
-#         "issue_selected": f"Issue selected. Options:\n- Transition: `jira_transition_issue(\"{issue_key}\", \"In Progress\")`\n- Create branch: `create_branch_for_issue(\"{issue_key}\")`",
-        
-#         "issue_selected_todo": f"Issue {issue_key} is in To Do. Next steps:\n- Transition: `jira_transition_issue(\"{issue_key}\", \"In Progress\")`\n- Then create branch: `create_branch_for_issue(\"{issue_key}\")`",
-        
-#         "issue_selected_in_progress": f"Issue {issue_key} is In Progress. Create branch: `create_branch_for_issue(\"{issue_key}\")`",
-        
-#         "status_in_progress": f"Good! Issue {issue_key} is In Progress. Next: Create branch: `create_branch_for_issue(\"{issue_key}\")`",
-        
-#         "branch_created": f"✅ Branch feature/{issue_key} created!\n**SWITCH TO IT NOW:** `git checkout feature/{issue_key}`\nThen write your code in that branch.",
-        
-#         "code_ready": f"Code ready. Commit and push: `git_commit_and_push(\"Your message\", \"{issue_key}\")`",
-        
-#         "committed_pushed": f"Changes on GitHub. Create PR: `create_pull_request(\"{issue_key}\", \"feature/{issue_key}\")`",
-        
-#         "pr_created": f"PR open. Transition issue: `jira_transition_issue(\"{issue_key}\", \"In Review\")`",
-        
-#         "status_in_review": f"Issue {issue_key} In Review. Waiting for approval.",
-        
-#         "pr_approved": f"PR approved. Ready to merge: `merge_pull_request(PR_NUMBER)`",
-        
-#         "merged": f"Merged to main. Mark done: `jira_transition_issue(\"{issue_key}\", \"Done\")`",
-        
-#         "status_done": f"Done! Issue {issue_key} complete."
-#     }
-    
-#     return workflows.get(step, workflows["start"])
-
 def get_workflow_guidance(step: str = "start", issue_key: Optional[str] = None) -> str:
     """
     Safe workflow guidance:

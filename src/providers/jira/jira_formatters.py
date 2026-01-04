@@ -51,18 +51,10 @@ def format_issue(issue: Dict[str, Any]) -> Dict[str, Any]:
         })
 
     return {
-        "key": key,
-        "summary": summary,
-        "issuetype": issuetype,
-        "status": status,
-        "priority": priority,
-        "assignee": assignee,
-        "reporter": reporter,
-        "duedate": duedate,
-        "created": created,
-        "updated": updated,
-        "description_text": description_text,  
-        "subtasks": subtasks_out,             
+        "key": key,"summary": summary,"issuetype": issuetype,
+        "status": status,"priority": priority,"assignee": assignee,
+        "reporter": reporter,"duedate": duedate,"created": created,"updated": updated,
+        "description_text": description_text,"subtasks": subtasks_out,             
     }
 
 def format_issues_list(payload: Dict[str, Any]) -> Dict[str, Any]:

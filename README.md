@@ -1,4 +1,4 @@
-# Jira–GitHub MCP Server
+# Jira - GitHub MCP Server
 
 A modular and extensible Model Context Protocol (MCP) server for Jira and
 GitHub integration, enabling end-to-end automation of developer workflows -
@@ -14,7 +14,7 @@ agents inside the IDE.
 - **IDE-native**: works with any MCP-compatible agent (e.g., GitHub Copilot) over stdio
 - **End-to-end workflow**: Jira issue → branch → code → commit → PR → merge → Jira status update
 
-## Why?
+## Why
 
 Developers constantly context-switch between Jira, GitHub, and their IDE,
 breaking focus and slowing down delivery. This project transforms that workflow
