@@ -1,0 +1,178 @@
+"""Integration tests for Jira Tools
+Tests that each tool calls the provider with correct endpoints and parameters.
+"""
+import pytest
+from unittest.mock import patch
+from src.tools.jira_tools.jira_get_issue import register as register_get_issue
+from src.tools.jira_tools.jira_search_issues import register as register_search_issues
+from src.tools.jira_tools.jira_get_my_issues import register as register_my_issues
+from src.tools.jira_tools.jira_transition_issue import register as register_transition
+
+
+class MockFastMCP:
+    """Mock FastMCP to extract registered tool functions."""
+    def __init__(self):
+        self.tools = {}
+    
+    def tool(self, name):
+        def decorator(func):
+            self.tools[name] = func
+            return func
+        return decorator
+
+
+def get_tool_function(register_func, tool_name):
+    """Extract tool function from register function"""
+    mcp = MockFastMCP()
+    register_func(mcp)
+    return mcp.tools[tool_name]
+
+
+class TestJiraGetIssueTool:
+    """Tests jira_get_issue calls provider correctly"""
+    
+    @pytest.mark.parametrize("fields", [None, ["created", "updated"]])
+    @patch('src.tools.jira_tools.jira_get_issue.format_issue')
+    @patch('src.tools.jira_tools.jira_get_issue.jira_api_get')
+    def test_get_issue(self, mock_get, mock_format, fields):
+        """Tool builds correct endpoint and applies parameters"""
+        mock_get.return_value = {"key": "KAN-15", "fields": {}}
+        mock_format.return_value = {"key": "KAN-15"}
+        
+        tool = get_tool_function(register_get_issue, "jira_get_issue")
+        tool("KAN-15", fields=fields) if fields else tool("KAN-15")
+        
+        # Verify endpoint
+        mock_get.assert_called_once()
+        assert mock_get.call_args.args[0] == "/issue/KAN-15"
+        
+        # Verify fields parameter if provided
+        if fields:
+            params = mock_get.call_args.kwargs.get("params", {})
+            assert all(f in params.get("fields", "") for f in fields)
+    
+    @patch('src.tools.jira_tools.jira_get_issue.format_issue')
+    @patch('src.tools.jira_tools.jira_get_issue.jira_api_get')
+    def test_propagates_provider_error(self, mock_get, mock_format):
+        """Tool propagates error when provider fails"""
+        mock_get.side_effect = Exception("404: Issue not found")
+        tool = get_tool_function(register_get_issue, "jira_get_issue")
+        
+        with pytest.raises(Exception) as exc_info:
+            tool("INVALID-999")
+        assert "404" in str(exc_info.value)
+
+
+class TestJiraSearchIssuesTool:
+    """Tests jira_search_issues builds correct JQL and calls provider"""
+    
+    @pytest.mark.parametrize("jql,max_results,fields", [
+        ("project = KAN", 20, None),
+        ("project = TEST", 10, ["customfield_1000"]),
+    ])
+    @patch('src.tools.jira_tools.jira_search_issues.format_issues_list')
+    @patch('src.tools.jira_tools.jira_search_issues.jira_api_post')
+    def test_search_issues(self, mock_post, mock_format, jql, max_results, fields):
+        """Tool builds JQL with parameters and optional fields"""
+        mock_post.return_value = {"issues": [{"key": "KAN-1"}], "total": 1}
+        mock_format.return_value = {"issues": [{"key": "KAN-1"}], "total": 1}
+        
+        tool = get_tool_function(register_search_issues, "jira_search_issues")
+        tool(jql, max_results=max_results, fields=fields) if fields else tool(jql, max_results=max_results)
+        
+        # Verify endpoint
+        mock_post.assert_called_once()
+        assert mock_post.call_args.args[0] == "/search/jql"
+        
+        # Verify request body
+        json_body = mock_post.call_args.kwargs["json_body"]
+        assert json_body["jql"] == jql
+        assert json_body["maxResults"] == max_results
+        
+        if fields:
+            assert "customfield_1000" in json_body["fields"]
+
+
+class TestJiraGetMyIssuesTool:
+    """Tests jira_get_my_issues queries with currentUser() filter"""
+    
+    @pytest.mark.parametrize("status,issue_type", [
+        (None, None),
+        ("In Progress", None),
+        ("Done", "Bug"),
+    ])
+    @patch('src.tools.jira_tools.jira_get_my_issues.format_issues_list')
+    @patch('src.tools.jira_tools.jira_get_my_issues.jira_api_post')
+    def test_get_my_issues(self, mock_post, mock_format, status, issue_type):
+        """Tool builds JQL with currentUser() and optional filters"""
+        mock_post.return_value = {"issues": [], "total": 0}
+        mock_format.return_value = {"issues": [], "total": 0}
+        
+        tool = get_tool_function(register_my_issues, "jira_get_my_issues")
+        kwargs = {}
+        if status:
+            kwargs["status"] = status
+        if issue_type:
+            kwargs["issue_type"] = issue_type
+        tool(**kwargs)
+        
+        # Verify JQL contains currentUser
+        json_body = mock_post.call_args.kwargs["json_body"]
+        assert "currentUser()" in json_body["jql"]
+        
+        if status:
+            assert status in json_body["jql"]
+        if issue_type:
+            assert issue_type in json_body["jql"]
+
+
+class TestJiraTransitionIssueTool:
+    """Tests jira_transition_issue sends correct transition request"""
+    
+    @pytest.mark.parametrize("status,comment", [
+        ("In Progress", None),
+        ("Done", "Task completed successfully"),
+    ])
+    @patch('src.tools.jira_tools.jira_transition_issue.jira_api_post')
+    @patch('src.tools.jira_tools.jira_transition_issue.jira_api_get')
+    def test_transition_issue(self, mock_get, mock_post, status, comment):
+        """Tool transitions issue with optional comment"""
+        mock_get.return_value = {
+            "transitions": [
+                {"id": "11", "name": "Start Progress", "to": {"name": "In Progress"}},
+                {"id": "21", "name": "Done", "to": {"name": "Done"}}
+            ]
+        }
+        mock_post.return_value = {"success": True}
+        
+        tool = get_tool_function(register_transition, "jira_transition_issue")
+        tool("KAN-15", status, comment=comment) if comment else tool("KAN-15", status)
+        
+        # Verify GET call
+        mock_get.assert_called_once()
+        assert "/transitions" in mock_get.call_args.args[0]
+        
+        # Verify POST call
+        mock_post.assert_called_once()
+        json_body = mock_post.call_args.kwargs["json_body"]
+        assert "transition" in json_body
+        
+        if comment:
+            assert "update" in json_body and "comment" in json_body["update"]
+    
+    @patch('src.tools.jira_tools.jira_transition_issue.jira_api_post')
+    @patch('src.tools.jira_tools.jira_transition_issue.jira_api_get')
+    def test_handles_invalid_transition_error(self, mock_get, mock_post):
+        """Tool returns error when transition is not available"""
+        mock_get.return_value = {
+            "transitions": [
+                {"id": "11", "name": "Start", "to": {"name": "In Progress"}}
+            ]
+        }
+        
+        tool = get_tool_function(register_transition, "jira_transition_issue")
+        result = tool("KAN-15", "NONEXISTENT_STATUS")
+        
+        assert result["ok"] is False
+        assert result["error"] == "no_matching_transition"
+        assert "available_transitions" in result

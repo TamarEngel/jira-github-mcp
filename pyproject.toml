@@ -1,0 +1,9 @@
+[project]
+name = "jira-github-mcp"
+version = "0.1.0"
+description = "Jira-GitHub MCP server for IDE-native workflow automation"
+requires-python = ">=3.10"
+
+dependencies = [
+    "fastmcp"
+]
