@@ -7,7 +7,7 @@ load_dotenv()
 
 @dataclass(frozen=True)
 class GitHubConfig:
-    """GitHub configuration dataclass"""
+    """GitHub configuration with repo URL, token, and default branch."""
     repo_url: str
     token: str
     default_branch: str
@@ -15,7 +15,13 @@ class GitHubConfig:
 
 def get_github_config() -> GitHubConfig:
     """
-    Load GitHub configuration from environment variables.
+    Load and validate GitHub configuration from environment variables.
+    
+    Returns:
+        GitHubConfig: Configuration object
+    
+    Raises:
+        RuntimeError: If required env vars are missing or URL format is invalid
     """
     repo_url = os.getenv("GIT_REPO_URL")
     token = os.getenv("GITHUB_TOKEN")
@@ -26,6 +32,8 @@ def get_github_config() -> GitHubConfig:
             "Missing GitHub configuration. "
             "Please set GIT_REPO_URL, GITHUB_TOKEN, and GIT_DEFAULT_BRANCH in .env"
         )
+    
+    # Validate repository URL format - WHY: Ensures URL can be parsed correctly later
     try:
         parts = repo_url.rstrip("/").replace(".git", "").split("/")
         if len(parts) < 2:
@@ -41,8 +49,6 @@ def get_github_config() -> GitHubConfig:
 
 
 def extract_repo_info(repo_url: str) -> tuple[str, str]:
-    """
-    Extract owner and repo name from repository URL.
-    """
+    """Extract owner and repo name from GitHub URL."""
     parts = repo_url.rstrip("/").replace(".git", "").split("/")
     return parts[-2], parts[-1]

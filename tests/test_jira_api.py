@@ -1,7 +1,8 @@
 """Tests for Jira API integration"""
 import pytest
-from unittest.mock import patch, MagicMock
-import requests
+import pytest_asyncio
+from unittest.mock import patch, MagicMock, AsyncMock
+import httpx
 from src.providers.jira.jira_api import jira_api_get, jira_api_post
 
 
@@ -27,13 +28,24 @@ def create_response_mock(ok=True, status_code=200, json_value=None, text=''):
 class TestJiraApiGetSuccess:
     """Test successful Jira API GET request"""
     
-    @patch('src.providers.jira.jira_api.requests.get')
+    @pytest.mark.asyncio
     @patch('src.providers.jira.jira_api.get_jira_config')
-    def test_returns_issue_data(self, mock_config, mock_get):
+    @patch('src.providers.jira.jira_api.httpx.AsyncClient')
+    async def test_returns_issue_data(self, mock_client_class, mock_config):
         mock_config.return_value = create_config_mocks()
-        mock_get.return_value = create_response_mock(json_value={"key": "KAN-1", "summary": "Bug"})
         
-        result = jira_api_get('/issue/KAN-1')
+        # Mock the async context manager and client
+        mock_client = AsyncMock()
+        mock_client_class.return_value.__aenter__.return_value = mock_client
+        
+        # Create mock response
+        mock_response = MagicMock()
+        mock_response.status_code = 200
+        mock_response.text = '{"key": "KAN-1", "summary": "Bug"}'
+        mock_response.json.return_value = {"key": "KAN-1", "summary": "Bug"}
+        mock_client.get.return_value = mock_response
+        
+        result = await jira_api_get('/issue/KAN-1')
         
         assert result['key'] == 'KAN-1'
         assert result['summary'] == 'Bug'
@@ -42,16 +54,25 @@ class TestJiraApiGetSuccess:
 class TestJiraApiGetWithParams:
     """Test Jira API GET request with parameters"""
     
-    @patch('src.providers.jira.jira_api.requests.get')
+    @pytest.mark.asyncio
     @patch('src.providers.jira.jira_api.get_jira_config')
-    def test_passes_params_to_request(self, mock_config, mock_get):
+    @patch('src.providers.jira.jira_api.httpx.AsyncClient')
+    async def test_passes_params_to_request(self, mock_client_class, mock_config):
         mock_config.return_value = create_config_mocks()
-        mock_get.return_value = create_response_mock(json_value={"issues": []})
+        
+        mock_client = AsyncMock()
+        mock_client_class.return_value.__aenter__.return_value = mock_client
+        
+        mock_response = MagicMock()
+        mock_response.status_code = 200
+        mock_response.text = '{"issues": []}'
+        mock_response.json.return_value = {"issues": []}
+        mock_client.get.return_value = mock_response
         
         params = {"fields": "summary,status"}
-        jira_api_get('/search', params=params)
+        await jira_api_get('/search', params=params)
         
-        call_kwargs = mock_get.call_args.kwargs
+        call_kwargs = mock_client.get.call_args.kwargs
         assert call_kwargs['params'] == params
 
 
@@ -59,61 +80,87 @@ class TestJiraApiGetWithParams:
 class TestJiraApiGetErrors:
     """Test Jira API GET request error handling"""
     
-    @patch('src.providers.jira.jira_api.requests.get')
+    @pytest.mark.asyncio
     @patch('src.providers.jira.jira_api.get_jira_config')
-    def test_raises_error_on_http_error(self, mock_config, mock_get, status_code, text):
+    @patch('src.providers.jira.jira_api.httpx.AsyncClient')
+    async def test_raises_error_on_http_error(self, mock_client_class, mock_config, status_code, text):
         mock_config.return_value = create_config_mocks()
-        mock_get.return_value = create_response_mock(ok=False, status_code=status_code, text=text)
+        
+        mock_client = AsyncMock()
+        mock_client_class.return_value.__aenter__.return_value = mock_client
+        
+        mock_response = MagicMock()
+        mock_response.status_code = status_code
+        mock_response.text = text
+        mock_client.get.return_value = mock_response
         
         with pytest.raises(RuntimeError) as exc:
-            jira_api_get('/issue/INVALID-999')
+            await jira_api_get('/issue/INVALID-999')
         
         assert str(status_code) in str(exc.value)
 
 
-@pytest.mark.parametrize("exc_class", [requests.Timeout, requests.ConnectionError])
+@pytest.mark.parametrize("exc_class", [httpx.TimeoutException, httpx.ConnectError])
 class TestJiraApiGetNetworkErrors:
     """Test Jira API GET request network error handling"""
     
-    @patch('src.providers.jira.jira_api.requests.get')
+    @pytest.mark.asyncio
     @patch('src.providers.jira.jira_api.get_jira_config')
-    def test_propagates_network_error(self, mock_config, mock_get, exc_class):
+    @patch('src.providers.jira.jira_api.httpx.AsyncClient')
+    async def test_propagates_network_error(self, mock_client_class, mock_config, exc_class):
         mock_config.return_value = create_config_mocks()
-        mock_get.side_effect = exc_class('Network error')
+        
+        mock_client = AsyncMock()
+        mock_client_class.return_value.__aenter__.return_value = mock_client
+        mock_client.get.side_effect = exc_class('Network error')
         
         with pytest.raises(exc_class):
-            jira_api_get('/issue/KAN-1')
+            await jira_api_get('/issue/KAN-1')
 
 
 class TestJiraApiGetAuthentication:
     """Test Jira API GET request uses authentication"""
     
-    @patch('src.providers.jira.jira_api.requests.get')
+    @pytest.mark.asyncio
     @patch('src.providers.jira.jira_api.get_jira_config')
-    def test_includes_auth_header(self, mock_config, mock_get):
+    @patch('src.providers.jira.jira_api.httpx.AsyncClient')
+    async def test_includes_auth_header(self, mock_client_class, mock_config):
         mock_config.return_value = create_config_mocks()
-        mock_get.return_value = create_response_mock(json_value={"key": "KAN-1"})
         
-        jira_api_get('/issue/KAN-1')
+        mock_client = AsyncMock()
+        mock_client_class.return_value.__aenter__.return_value = mock_client
         
-        call_kwargs = mock_get.call_args.kwargs
+        mock_response = MagicMock()
+        mock_response.status_code = 200
+        mock_response.text = '{"key": "KAN-1"}'
+        mock_response.json.return_value = {"key": "KAN-1"}
+        mock_client.get.return_value = mock_response
+        
+        await jira_api_get('/issue/KAN-1')
+        
+        call_kwargs = mock_client.get.call_args.kwargs
         assert call_kwargs['auth'] is not None
 
 
 class TestJiraApiPostSuccess:
     """Test successful Jira API POST request"""
     
-    @patch('src.providers.jira.jira_api.requests.post')
+    @pytest.mark.asyncio
     @patch('src.providers.jira.jira_api.get_jira_config')
-    def test_returns_response_data(self, mock_config, mock_post):
+    @patch('src.providers.jira.jira_api.httpx.AsyncClient')
+    async def test_returns_response_data(self, mock_client_class, mock_config):
         mock_config.return_value = create_config_mocks()
-        mock_post.return_value = create_response_mock(
-            status_code=200,
-            text='{"id":"123","success":true}',
-            json_value={"id": "123", "success": True}
-        )
         
-        result = jira_api_post('/issue/KAN-1/transitions', json_body={"transition": {"id": "10"}})
+        mock_client = AsyncMock()
+        mock_client_class.return_value.__aenter__.return_value = mock_client
+        
+        mock_response = MagicMock()
+        mock_response.status_code = 200
+        mock_response.text = '{"id":"123","success":true}'
+        mock_response.json.return_value = {"id": "123", "success": True}
+        mock_client.post.return_value = mock_response
+        
+        result = await jira_api_post('/issue/KAN-1/transitions', json_body={"transition": {"id": "10"}})
         
         assert result["id"] == "123"
         assert result["success"] is True
@@ -122,13 +169,21 @@ class TestJiraApiPostSuccess:
 class TestJiraApiPostNoContent:
     """Test Jira API POST request with 204 No Content response"""
     
-    @patch('src.providers.jira.jira_api.requests.post')
+    @pytest.mark.asyncio
     @patch('src.providers.jira.jira_api.get_jira_config')
-    def test_handles_204_response(self, mock_config, mock_post):
+    @patch('src.providers.jira.jira_api.httpx.AsyncClient')
+    async def test_handles_204_response(self, mock_client_class, mock_config):
         mock_config.return_value = create_config_mocks()
-        mock_post.return_value = create_response_mock(status_code=204)
         
-        result = jira_api_post('/issue/KAN-1/transitions', json_body={"transition": {"id": "10"}})
+        mock_client = AsyncMock()
+        mock_client_class.return_value.__aenter__.return_value = mock_client
+        
+        mock_response = MagicMock()
+        mock_response.status_code = 204
+        mock_response.text = ''
+        mock_client.post.return_value = mock_response
+        
+        result = await jira_api_post('/issue/KAN-1/transitions', json_body={"transition": {"id": "10"}})
         
         assert result['ok'] is True
         assert result['status_code'] == 204
@@ -137,20 +192,26 @@ class TestJiraApiPostNoContent:
 class TestJiraApiPostJsonAndHeaders:
     """Test Jira API POST request passes JSON body and headers correctly"""
     
-    @patch('src.providers.jira.jira_api.requests.post')
+    @pytest.mark.asyncio
     @patch('src.providers.jira.jira_api.get_jira_config')
-    def test_sends_json_body_and_headers(self, mock_config, mock_post):
+    @patch('src.providers.jira.jira_api.httpx.AsyncClient')
+    async def test_sends_json_body_and_headers(self, mock_client_class, mock_config):
         mock_config.return_value = create_config_mocks()
-        mock_post.return_value = create_response_mock(
-            text='{"success":true}',
-            json_value={"success": True}
-        )
+        
+        mock_client = AsyncMock()
+        mock_client_class.return_value.__aenter__.return_value = mock_client
+        
+        mock_response = MagicMock()
+        mock_response.status_code = 200
+        mock_response.text = '{"success":true}'
+        mock_response.json.return_value = {"success": True}
+        mock_client.post.return_value = mock_response
         
         body = {"transition": {"id": "10"}}
-        result = jira_api_post('/issue/KAN-1/transitions', json_body=body)
+        result = await jira_api_post('/issue/KAN-1/transitions', json_body=body)
         
         # Verify JSON body and headers were sent correctly
-        call_kwargs = mock_post.call_args.kwargs
+        call_kwargs = mock_client.post.call_args.kwargs
         assert call_kwargs['json'] == body
         headers = call_kwargs['headers']
         assert headers['Content-Type'] == 'application/json'
@@ -163,13 +224,21 @@ class TestJiraApiPostJsonAndHeaders:
 class TestJiraApiPostErrors:
     """Test Jira API POST request error handling"""
     
-    @patch('src.providers.jira.jira_api.requests.post')
+    @pytest.mark.asyncio
     @patch('src.providers.jira.jira_api.get_jira_config')
-    def test_raises_error_on_400(self, mock_config, mock_post):
+    @patch('src.providers.jira.jira_api.httpx.AsyncClient')
+    async def test_raises_error_on_400(self, mock_client_class, mock_config):
         mock_config.return_value = create_config_mocks()
-        mock_post.return_value = create_response_mock(ok=False, status_code=400, text='Invalid transition')
+        
+        mock_client = AsyncMock()
+        mock_client_class.return_value.__aenter__.return_value = mock_client
+        
+        mock_response = MagicMock()
+        mock_response.status_code = 400
+        mock_response.text = 'Invalid transition'
+        mock_client.post.return_value = mock_response
         
         with pytest.raises(RuntimeError) as exc:
-            jira_api_post('/issue/KAN-1/transitions', json_body={})
+            await jira_api_post('/issue/KAN-1/transitions', json_body={})
         
         assert '400' in str(exc.value)

@@ -1,3 +1,11 @@
+"""
+MCP Server Module
+
+Initializes and runs the Jira-GitHub MCP (Model Context Protocol) server.
+Registers all tools, resources, and prompts that enable end-to-end workflow automation
+for Jira issue management and GitHub repository operations.
+"""
+
 from mcp.server.fastmcp import FastMCP
 from src.tools.jira_tools.jira_get_issue import register as reg_get_issue
 from src.tools.jira_tools.jira_search_issues import register as reg_search
@@ -11,6 +19,13 @@ from src.prompts.dev_workflow import register as reg_workflow_prompts
 from src.resources.resources import register as reg_resources
 
 def register_tools(mcp: FastMCP) -> None:
+    """
+    Register all Jira and GitHub tools on the MCP server.
+    Each module exposes a register(mcp) function that attaches a tool to the server.
+    
+    This function wires domain-specific tools into the MCP runtime,
+    enabling end-to-end issue and repository workflows.
+    """
     # Jira tools
     reg_get_issue(mcp)
     reg_search(mcp)
@@ -24,16 +39,29 @@ def register_tools(mcp: FastMCP) -> None:
     reg_github_merge_pr(mcp)
     
 def register_resources(mcp: FastMCP) -> None:
-    """Register resources"""
+    """
+    Register MCP resources.
+
+    Resources provide static context and reference material
+    that help guide the LLM during tool usage.
+    """
     reg_resources(mcp)
 
 def register_prompts(mcp: FastMCP) -> None:
-    """Register prompts"""
+    """
+    Register MCP prompts.
+
+    Prompts define guided workflows and best practices that help
+    the LLM orchestrate tools correctly and consistently.
+    """
     reg_workflow_prompts(mcp)
 
 def main() -> None:
-    mcp = FastMCP("jira-github-mcp")   
-    register_tools(mcp)    
+    """Entry point: build and run the Jira-GitHub MCP server."""
+    mcp = FastMCP("jira-github-mcp")
+    
+    # Register core capabilities first, then add guidance/context for the LLM.
+    register_tools(mcp)
     register_resources(mcp)
     register_prompts(mcp)
     mcp.run()

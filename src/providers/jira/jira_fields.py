@@ -1,4 +1,7 @@
-# src/providers/jira_fields.py
+"""
+Jira Fields Configuration
+Defines default fields for list and detailed issue views.
+"""
 
 LIST_DEFAULT_FIELDS = [
     "summary",
