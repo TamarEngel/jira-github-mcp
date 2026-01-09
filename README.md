@@ -177,10 +177,9 @@ Here's how to connect and start using the server with Copilot:
 ## How It Works
 
 ```mermaid
+%%{init: {'flowchart': {'htmlLabels': true, 'useMaxWidth': false}}}%%
 graph LR
     IDE["Your IDE<br/>VS Code + Copilot"]
-    
-    
     MCP["MCP Server"]
     JIRA["Jira API<br/>(httpx.Async)"]
     GITHUB["GitHub API<br/>(httpx.Async)"]
@@ -191,13 +190,6 @@ graph LR
     MCP -->|create/merge| GITHUB
     MCP -->|commit/push| GIT
     MCP -->|respond| IDE
-    
-    style IDE fill:#ffffff,stroke:#000000,stroke-width:2px,color:#000
-    style MCP fill:#ffffff,stroke:#000000,stroke-width:2px,color:#000
-    style JIRA fill:#ffffff,stroke:#000000,stroke-width:2px,color:#000
-    style GITHUB fill:#ffffff,stroke:#000000,stroke-width:2px,color:#000
-    style GIT fill:#ffffff,stroke:#000000,stroke-width:2px,color:#000
-    style space fill:none,stroke:none
 ```
 
 ## Example Workflow
