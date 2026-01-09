@@ -178,10 +178,13 @@ Here's how to connect and start using the server with Copilot:
 
 ```mermaid
 graph LR
-    IDE["Your IDE<br/>VS Code + Copilot"]
+    subgraph " "
+        IDE["Your IDE<br/>VS Code + Copilot"]
+    end
+    
     MCP["MCP Server"]
-    JIRA["Jira API"]
-    GITHUB["GitHub API"]
+    JIRA["Jira API<br/>(httpx.Async)"]
+    GITHUB["GitHub API<br/>(httpx.Async)"]
     GIT["Local Git"]
     
     IDE -->|ask| MCP
@@ -190,11 +193,11 @@ graph LR
     MCP -->|commit/push| GIT
     MCP -->|respond| IDE
     
-    style IDE fill:#c5cae9,stroke:#512da8,stroke-width:3px,color:#000
-    style MCP fill:#c5cae9,stroke:#512da8,stroke-width:3px,color:#000
-    style JIRA fill:#c5cae9,stroke:#512da8,stroke-width:3px,color:#000
-    style GITHUB fill:#c5cae9,stroke:#512da8,stroke-width:3px,color:#000
-    style GIT fill:#c5cae9,stroke:#512da8,stroke-width:3px,color:#000
+    style IDE fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px,color:#000
+    style MCP fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px,color:#000
+    style JIRA fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px,color:#000
+    style GITHUB fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px,color:#000
+    style GIT fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px,color:#000
 ```
 
 ## Example Workflow
