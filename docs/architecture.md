@@ -40,16 +40,20 @@ graph TD
 Each tool is registered with the MCP server via the `@mcp.tool()` decorator.
 
 ```mermaid
-sequenceDiagram
-    autonumber
-    participant User
-    participant MCP as MCP Server
-    participant Tool
-    User->>MCP: Request tool call
-    MCP->>MCP: Route to registered tool
-    MCP->>Tool: Execute async function
-    Tool-->>MCP: Process & return
-    MCP-->>User: Return result
+graph TD
+    A["User Request"]
+    B["MCP Server<br/>receives tool call"]
+    C["Route to<br/>registered tool"]
+    D["Execute<br/>async function"]
+    E["Return<br/>result to user"]
+    
+    A --> B --> C --> D --> E
+    
+    style A text-align:center
+    style B text-align:center
+    style C text-align:center
+    style D text-align:center
+    style E text-align:center
 ```
 
 ### 2. Tool Layer (src/tools/)
@@ -61,17 +65,14 @@ Tools orchestrate the workflow:
 
 Example: `github_create_branch`
 ```mermaid
-graph LR
-    A["📥 Input:<br/>issue_key<br/>branch_name?"] -->|fetch| B["⚙️ Get Config:<br/>owner/repo"]
-    B -->|api call| C["🔍 Fetch SHA:<br/>github_api_get"]
-    C -->|create| D["✨ Create Branch:<br/>github_api_post"]
-    D -->|return| E["📤 Output:<br/>branch ref + SHA"]
+graph TD
+    A["Input: issue_key<br/>branch_name?"]
+    B["Get repo config<br/>extract owner/repo"]
+    C["Fetch base branch SHA<br/>github_api_get"]
+    D["Create new branch<br/>github_api_post"]
+    E["Return: branch ref<br/>+ commit SHA"]
     
-    style A fill:#e1f5ff
-    style B fill:#f3e5f5
-    style C fill:#fff3e0
-    style D fill:#f1f8e9
-    style E fill:#ede7f6
+    A --> B --> C --> D --> E
 ```
 
 ### 3. Provider Layer (src/providers/)
@@ -99,17 +100,15 @@ Load and validate environment variables:
 All providers use async I/O with `httpx.AsyncClient`:
 
 ```mermaid
-sequenceDiagram
-    autonumber
-    participant Tool
-    participant Provider
-    participant httpx
-    Tool->>Provider: await github_api_get()
-    Provider->>httpx: send request
-    httpx-->>Provider: response<br/>(non-blocking)
-    Provider-->>Tool: return data
-    Tool->>Tool: process result
-    Tool-->>MCP: return to server
+graph TD
+    A["Tool calls:<br/>await github_api_get()"]
+    B["Provider awaits<br/>httpx response"]
+    C["HTTP request sent<br/>non-blocking"]
+    D["Response<br/>received"]
+    E["Tool processes<br/>result"]
+    F["Return to<br/>MCP Server"]
+    
+    A --> B --> C --> D --> E --> F
 ```
 
 Benefits:
@@ -122,17 +121,14 @@ Benefits:
 Tests use mocking to avoid real API calls:
 
 ```mermaid
-graph LR
-    A["🧪 Test<br/>asyncio.run()"] -->|setup| B["🎭 Tool Code<br/>Mocked Providers"]
-    B -->|return| C["📋 Mock Responses<br/>AsyncMock"]
-    C -->|verify| D["✓ Assertions<br/>API Calls"]
-    D -->|result| E["⚡ Fast & Repeatable<br/>No Network"]
+graph TD
+    A["Test calls:<br/>asyncio.run()"]
+    B["Tool code runs<br/>with mocked providers"]
+    C["Mocks return<br/>predefined responses"]
+    D["Assertions verify<br/>tool called API"]
+    E["No network traffic<br/>fast & repeatable"]
     
-    style A fill:#fff9c4
-    style B fill:#f0f4c3
-    style C fill:#dcedc8
-    style D fill:#c8e6c9
-    style E fill:#a5d6a7
+    A --> B --> C --> D --> E
 ```
 
 Key mocking pattern:
