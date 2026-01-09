@@ -39,16 +39,17 @@ graph TD
 ### 1. Tool Registration Layer
 Each tool is registered with the MCP server via the `@mcp.tool()` decorator.
 
-```
-User Request
-    ↓
-MCP Server receives tool call
-    ↓
-Route to registered tool function
-    ↓
-Execute async tool function
-    ↓
-Return result to user
+```mermaid
+sequenceDiagram
+    autonumber
+    participant User
+    participant MCP as MCP Server
+    participant Tool
+    User->>MCP: Request tool call
+    MCP->>MCP: Route to registered tool
+    MCP->>Tool: Execute async function
+    Tool-->>MCP: Process & return
+    MCP-->>User: Return result
 ```
 
 ### 2. Tool Layer (src/tools/)
@@ -59,16 +60,18 @@ Tools orchestrate the workflow:
 - Format and return results
 
 Example: `github_create_branch`
-```
-Input: issue_key, branch_name (optional)
-    ↓
-Get repo config (extract owner/repo)
-    ↓
-Fetch base branch SHA (github_api_get)
-    ↓
-Create new branch (github_api_post)
-    ↓
-Return: branch ref + commit SHA
+```mermaid
+graph LR
+    A["📥 Input:<br/>issue_key<br/>branch_name?"] -->|fetch| B["⚙️ Get Config:<br/>owner/repo"]
+    B -->|api call| C["🔍 Fetch SHA:<br/>github_api_get"]
+    C -->|create| D["✨ Create Branch:<br/>github_api_post"]
+    D -->|return| E["📤 Output:<br/>branch ref + SHA"]
+    
+    style A fill:#e1f5ff
+    style B fill:#f3e5f5
+    style C fill:#fff3e0
+    style D fill:#f1f8e9
+    style E fill:#ede7f6
 ```
 
 ### 3. Provider Layer (src/providers/)
@@ -95,18 +98,18 @@ Load and validate environment variables:
 
 All providers use async I/O with `httpx.AsyncClient`:
 
-```
-Tool calls: await github_api_get(...)
-    ↓
-Provider function awaits httpx response
-    ↓
-HTTP request sent (non-blocking)
-    ↓
-Response received
-    ↓
-Tool processes result
-    ↓
-Return to MCP Server
+```mermaid
+sequenceDiagram
+    autonumber
+    participant Tool
+    participant Provider
+    participant httpx
+    Tool->>Provider: await github_api_get()
+    Provider->>httpx: send request
+    httpx-->>Provider: response<br/>(non-blocking)
+    Provider-->>Tool: return data
+    Tool->>Tool: process result
+    Tool-->>MCP: return to server
 ```
 
 Benefits:
@@ -118,16 +121,18 @@ Benefits:
 
 Tests use mocking to avoid real API calls:
 
-```
-Test calls: asyncio.run(tool(...))
-    ↓
-Tool code runs with mocked providers
-    ↓
-Mocks return predefined responses (AsyncMock)
-    ↓
-Assertions verify tool called API correctly
-    ↓
-No network traffic, fast & repeatable
+```mermaid
+graph LR
+    A["🧪 Test<br/>asyncio.run()"] -->|setup| B["🎭 Tool Code<br/>Mocked Providers"]
+    B -->|return| C["📋 Mock Responses<br/>AsyncMock"]
+    C -->|verify| D["✓ Assertions<br/>API Calls"]
+    D -->|result| E["⚡ Fast & Repeatable<br/>No Network"]
+    
+    style A fill:#fff9c4
+    style B fill:#f0f4c3
+    style C fill:#dcedc8
+    style D fill:#c8e6c9
+    style E fill:#a5d6a7
 ```
 
 Key mocking pattern:
