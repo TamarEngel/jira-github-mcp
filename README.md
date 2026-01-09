@@ -22,15 +22,37 @@ into a seamless, IDE-native, conversational experience, allowing developers to
 move from Jira issue to merged pull request using natural language and
 AI-assisted automation.
 
+## How It Works
+
+```mermaid
+graph LR
+    IDE["Your IDE<br/>VS Code + Copilot"]
+    MCP["MCP Server"]
+    JIRA["Jira API"]
+    GITHUB["GitHub API"]
+    GIT["Local Git"]
+    
+    IDE -->|ask| MCP
+    MCP -->|fetch/update| JIRA
+    MCP -->|create/merge| GITHUB
+    MCP -->|commit/push| GIT
+    MCP -->|respond| IDE
+    
+    style IDE fill:#e3f2fd,stroke:#1976d2,stroke-width:2px
+    style MCP fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px
+    style JIRA fill:#fff3e0,stroke:#f57c00,stroke-width:2px
+    style GITHUB fill:#f1f8e9,stroke:#558b2f,stroke-width:2px
+    style GIT fill:#ede7f6,stroke:#512da8,stroke-width:2px
+```
 
 ## Features
 
-- Retrieve, filter, and search Jira issues using fields and JQL
-- Transition Jira issues across workflow statuses
-- Automate branch creation as part of the Jira-driven workflow
-- Commit and push changes from the local Git repository
-- Create and merge GitHub pull requests
-- MCP resources providing workflow guidance and current issue context
+- **Retrieve, filter, and search** Jira issues using **fields and JQL**
+- **Transition** Jira issues across **workflow statuses**
+- **Automate branch creation** as part of the **Jira-driven workflow**
+- **Commit and push** changes from the **local Git repository**
+- **Create and merge** GitHub **pull requests**
+- **MCP resources** providing **workflow guidance** and **current issue context**
 
 
 ## Available Tools
@@ -59,15 +81,20 @@ AI-assisted automation.
 - `pyproject.toml` — Project metadata and dependencies
 - `uv.lock` — Dependency lockfile
 
-### Requirements
+## Architecture Overview
 
+High-level overview of the system design and main components.
+
+See full architecture documentation: [docs/architecture.md](docs/architecture.md)
+
+
+## Installation & Setup
+
+### Requirements
 - Python 3.10+
 - Git (available on PATH)
 - Jira instance (Cloud or self-hosted) with REST API v3 access
 - GitHub repository with token-based API access
-
-## Installation & Setup
-
 
 
 ### 1. Clone the Repository
