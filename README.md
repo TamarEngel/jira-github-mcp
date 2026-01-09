@@ -22,29 +22,6 @@ into a seamless, IDE-native, conversational experience, allowing developers to
 move from Jira issue to merged pull request using natural language and
 AI-assisted automation.
 
-## How It Works
-
-```mermaid
-graph LR
-    IDE["Your IDE<br/>VS Code + Copilot"]
-    MCP["MCP Server"]
-    JIRA["Jira API"]
-    GITHUB["GitHub API"]
-    GIT["Local Git"]
-    
-    IDE -->|ask| MCP
-    MCP -->|fetch/update| JIRA
-    MCP -->|create/merge| GITHUB
-    MCP -->|commit/push| GIT
-    MCP -->|respond| IDE
-    
-    style IDE fill:#e3f2fd,stroke:#1976d2,stroke-width:2px
-    style MCP fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px
-    style JIRA fill:#fff3e0,stroke:#f57c00,stroke-width:2px
-    style GITHUB fill:#f1f8e9,stroke:#558b2f,stroke-width:2px
-    style GIT fill:#ede7f6,stroke:#512da8,stroke-width:2px
-```
-
 ## Features
 
 - **Retrieve, filter, and search** Jira issues using **fields and JQL**
@@ -197,6 +174,29 @@ Here's how to connect and start using the server with Copilot:
 4. Reload VS Code
 5. Start asking Copilot natural language questions—it will invoke the tools automatically
 
+## How It Works
+
+```mermaid
+graph LR
+    IDE["Your IDE<br/>VS Code + Copilot"]
+    MCP["MCP Server"]
+    JIRA["Jira API"]
+    GITHUB["GitHub API"]
+    GIT["Local Git"]
+    
+    IDE -->|ask| MCP
+    MCP -->|fetch/update| JIRA
+    MCP -->|create/merge| GITHUB
+    MCP -->|commit/push| GIT
+    MCP -->|respond| IDE
+    
+    style IDE fill:#c5cae9,stroke:#512da8,stroke-width:3px,color:#000
+    style MCP fill:#c5cae9,stroke:#512da8,stroke-width:3px,color:#000
+    style JIRA fill:#c5cae9,stroke:#512da8,stroke-width:3px,color:#000
+    style GITHUB fill:#c5cae9,stroke:#512da8,stroke-width:3px,color:#000
+    style GIT fill:#c5cae9,stroke:#512da8,stroke-width:3px,color:#000
+```
+
 ## Example Workflow
 
 This example demonstrates a complete issue-to-merge flow using GitHub Copilot with this MCP server.
@@ -282,3 +282,4 @@ This MCP server provides a clear and traceable development workflow by connectin
 By reducing manual coordination and keeping issues, branches, and pull requests in sync, it helps teams focus on development rather than process.
 
 *Designed with a focus on clarity, extensibility, and developer experience.*
+
