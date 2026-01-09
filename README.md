@@ -178,9 +178,8 @@ Here's how to connect and start using the server with Copilot:
 
 ```mermaid
 graph LR
-    subgraph " "
-        IDE["Your IDE<br/>VS Code + Copilot"]
-    end
+    IDE["Your IDE<br/>VS Code + Copilot"]
+    
     
     MCP["MCP Server"]
     JIRA["Jira API<br/>(httpx.Async)"]
@@ -193,11 +192,12 @@ graph LR
     MCP -->|commit/push| GIT
     MCP -->|respond| IDE
     
-    style IDE fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px,color:#000
-    style MCP fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px,color:#000
-    style JIRA fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px,color:#000
-    style GITHUB fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px,color:#000
-    style GIT fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px,color:#000
+    style IDE fill:#ffffff,stroke:#000000,stroke-width:2px,color:#000
+    style MCP fill:#ffffff,stroke:#000000,stroke-width:2px,color:#000
+    style JIRA fill:#ffffff,stroke:#000000,stroke-width:2px,color:#000
+    style GITHUB fill:#ffffff,stroke:#000000,stroke-width:2px,color:#000
+    style GIT fill:#ffffff,stroke:#000000,stroke-width:2px,color:#000
+    style space fill:none,stroke:none
 ```
 
 ## Example Workflow
