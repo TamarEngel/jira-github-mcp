@@ -178,9 +178,8 @@ Here's how to connect and start using the server with Copilot:
 
 ```mermaid
 graph LR
-    subgraph Client
-        IDE["Your IDE<br/>VS Code + Copilot"]
-    end
+   IDE["Your IDE<br/>VS Code + Copilot"]
+    
 
     MCP["MCP Server"]
     JIRA["Jira API<br/>(httpx.Async)"]
