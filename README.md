@@ -6,6 +6,10 @@ from issue tracking to code changes and pull request management -  via AI
 agents inside the IDE.
 
 
+## Hosted deployment
+
+A hosted deployment is available on [Fronteir AI](https://fronteir.ai/mcp/tamarengel-jira-github-mcp).
+
 ## Overview
 
 - **Jira integration**: fetch issues by filters, search via JQL, and transition issues across workflows
